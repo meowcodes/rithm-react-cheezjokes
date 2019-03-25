@@ -17,16 +17,31 @@ class CheeZJokes extends Component {
         super(props);
         this.state = {
             loading: true,
-            jokes: [],
+            jokes: JSON.parse(localStorage.getItem('savedJokes')) || [],
             error: null,
         }
-
+        this.triggerFetchNewJokes = this.triggerFetchNewJokes.bind(this);
     }
 
     async componentDidMount() {
+        if(this.state.jokes.length === 0){
+            let jokes = await this.fetchNewJokes(this.props.jokeNum)
+            this.setState({
+                jokes: jokes,
+                loading: false,
+            }, this.saveToLocalStorage)
+        }else {
+            this.setState({
+                loading: false,
+            })
+        }
+    }
+
+    async fetchNewJokes(numJokes) {
+        localStorage.clear();
         let promises = [];
         // make requests and get promises
-        for(let i = 0; i < this.props.jokeNum; i++){
+        for(let i = 0; i < numJokes; i++){
             try{
                 promises.push(axios.get(BASE_URL, CONFIG));
             } catch(err) {
@@ -54,11 +69,14 @@ class CheeZJokes extends Component {
             resps.push(joke);
         }
 
-        // update jokes state
+        return resps;
+    }
+    
+    async triggerFetchNewJokes() {
+        let newJokes = await this.fetchNewJokes(this.props.jokeNum)
         this.setState({
-            jokes: resps,
-            loading: false,
-        })
+            jokes: newJokes,
+        }, this.saveToLocalStorage)
     }
 
     voteUp(id) {
@@ -85,6 +103,14 @@ class CheeZJokes extends Component {
         return next.vote - curr.vote;
     }
 
+    componentDidUpdate() {
+        this.saveToLocalStorage();
+    }
+
+    saveToLocalStorage() {
+        localStorage.setItem('savedJokes', JSON.stringify(this.state.jokes));
+    }
+
     renderJokes() {
         return (this.state.jokes.map((jokeObj) =>
             <Joke key={jokeObj.id} joke={jokeObj} triggerUp={() => this.voteUp(jokeObj.id)} triggerDown={() => this.voteDown(jokeObj.id)}/>
@@ -92,11 +118,13 @@ class CheeZJokes extends Component {
         )
     }
 
+
     render() {
         let jokes = this.renderJokes()
         return (
             <div className="App">
                 <h1>CheeZJokes</h1>
+                <button onClick={ this.triggerFetchNewJokes }>Get New Jokes</button>
                 { this.state.loading && <p>loading jokes...</p>}
                 { jokes }
             </div>
