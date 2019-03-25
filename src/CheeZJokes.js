@@ -20,6 +20,7 @@ class CheeZJokes extends Component {
             jokes: [],
             error: null,
         }
+
     }
 
     async componentDidMount() {
@@ -34,15 +35,21 @@ class CheeZJokes extends Component {
                 })
             }
         }
-        console.log(promises);
 
         let resps = [];
+        let ids = new Set();
         //resolve promises
         for(let i = 0; i < promises.length; i++){
-            const res = await promises[i]
+            let res = await promises[i];
+            while(ids.has(res.data.id)){
+                res = await axios.get(BASE_URL, CONFIG);
+                console.log('duplicate!')
+            }
+            ids.add(res.data.id);
             const joke = {
                 joke: res.data.joke,
                 id: uuid(),
+                vote: 0,
             }
             resps.push(joke);
         }
@@ -54,9 +61,25 @@ class CheeZJokes extends Component {
         })
     }
 
+    voteUp(id) {
+        const newJokes = this.state.jokes.map((joke) =>(
+            joke.id === id? {...joke, vote: joke.vote + 1}: {...joke}
+        ));
+
+        this.setState({jokes: newJokes});
+    }
+
+    voteDown(id) {
+        const newJokes = this.state.jokes.map((joke) =>(
+            joke.id === id? {...joke, vote: joke.vote - 1}: {...joke}
+        ));
+
+        this.setState({jokes: newJokes});
+    }
+
     renderJokes() {
-        return (this.state.jokes.map((jokeObj) => 
-            <Joke key={jokeObj.id} joke={jokeObj.joke} />
+        return (this.state.jokes.map((jokeObj) =>
+            <Joke key={jokeObj.id} joke={jokeObj} triggerUp={() => this.voteUp(jokeObj.id)} triggerDown={() => this.voteDown(jokeObj.id)}/>
             )
         )
     }
@@ -66,7 +89,7 @@ class CheeZJokes extends Component {
         return (
             <div className="App">
                 <h1>CheeZJokes</h1>
-                { this.state.loading && <p>loading jokes</p>}
+                { this.state.loading && <p>loading jokes...</p>}
                 { jokes }
             </div>
         );
