@@ -65,7 +65,9 @@ class CheeZJokes extends Component {
         const newJokes = this.state.jokes.map((joke) =>(
             joke.id === id? {...joke, vote: joke.vote + 1}: {...joke}
         ));
-
+        console.log('before sort', newJokes)
+        newJokes.sort(this.sortJokesByVote);
+        console.log('after sort', newJokes)
         this.setState({jokes: newJokes});
     }
 
@@ -74,7 +76,13 @@ class CheeZJokes extends Component {
             joke.id === id? {...joke, vote: joke.vote - 1}: {...joke}
         ));
 
+        newJokes.sort(this.sortJokesByVote);
+
         this.setState({jokes: newJokes});
+    }
+
+    sortJokesByVote(curr, next){
+        return next.vote - curr.vote;
     }
 
     renderJokes() {
