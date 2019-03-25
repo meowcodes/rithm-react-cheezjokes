@@ -3,6 +3,10 @@ import React, { Component } from 'react';
 
 class Joke extends Component {
 
+  shouldComponentUpdate(nextProps, nextState){
+    return this.props.joke.vote !== nextProps.joke.vote
+  }
+
   render() {
     return (
       <div className="Joke">
