@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import axios from 'axios';
 import uuid from 'uuid/v4';
 import Joke from './Joke';
-// import './CheeZJokes.css';
+import './CheeZJokes.css';
 
 const BASE_URL = "https://icanhazdadjoke.com/";
 const CONFIG = {
@@ -29,7 +29,7 @@ class CheeZJokes extends Component {
             this.setState({
                 jokes: jokes,
                 loading: false,
-            }, this.saveToLocalStorage)
+            })
         }else {
             this.setState({
                 loading: false,
@@ -58,7 +58,6 @@ class CheeZJokes extends Component {
             let res = await promises[i];
             while(ids.has(res.data.id)){
                 res = await axios.get(BASE_URL, CONFIG);
-                console.log('duplicate!')
             }
             ids.add(res.data.id);
             const joke = {
@@ -73,10 +72,14 @@ class CheeZJokes extends Component {
     }
     
     async triggerFetchNewJokes() {
+        this.setState({
+            loading: true
+        })
         let newJokes = await this.fetchNewJokes(this.props.jokeNum)
         this.setState({
             jokes: newJokes,
-        }, this.saveToLocalStorage)
+            loading: false
+        })
     }
 
     voteUp(id) {
@@ -104,10 +107,6 @@ class CheeZJokes extends Component {
     }
 
     componentDidUpdate() {
-        this.saveToLocalStorage();
-    }
-
-    saveToLocalStorage() {
         localStorage.setItem('savedJokes', JSON.stringify(this.state.jokes));
     }
 
@@ -122,11 +121,15 @@ class CheeZJokes extends Component {
     render() {
         let jokes = this.renderJokes()
         return (
-            <div className="App">
+            <div className="CheeZJokes">
                 <h1>CheeZJokes</h1>
                 <button onClick={ this.triggerFetchNewJokes }>Get New Jokes</button>
-                { this.state.loading && <p>loading jokes...</p>}
-                { jokes }
+                { this.state.loading
+                    ? (<div className="CheeZJokes-loading">
+                        <i className="fas fa-ambulance"></i>
+                    </div>)
+                    : <div>{ jokes }</div>
+                }
             </div>
         );
     }

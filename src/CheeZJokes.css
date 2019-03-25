@@ -1,0 +1,12 @@
+.CheeZJokes-loading {
+    position: absolute;
+    top: 30vh;
+    color: red;
+    font-size: 3em;
+    animation: dash 1s infinite;
+}
+
+@-webkit-keyframes dash {
+    0%   { left: 10vw; }
+    100% { left: 90vw; }
+}
